@@ -1,7 +1,0 @@
-{
-    "name": "Steam API",
-    "files": {
-        "lua/packages/steam_api/package.lua": "https://raw.githubusercontent.com/Pika-Software/steam_api_package/master/lua/packages/steam_api/init.lua",
-        "lua/packages/steam_api/init.lua": "https://raw.githubusercontent.com/Pika-Software/steam_api_package/master/lua/packages/steam_api/package.lua"
-    }
-}

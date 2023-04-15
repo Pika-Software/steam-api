@@ -1,8 +1,10 @@
+-- Libraries
 local promise = promise
 local string = string
 local http = http
 local util = util
 
+-- Variables
 local table_concat = table.concat
 local math_Round = math.Round
 local tonumber = tonumber

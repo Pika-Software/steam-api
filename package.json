@@ -1,0 +1,7 @@
+{
+    "name": "steam-api",
+    "files": {
+        "lua/packages/steam-api/package.lua": "",
+        "lua/packages/steam-api/init.lua": ""
+    }
+}
