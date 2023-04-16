@@ -1,7 +1,7 @@
 {
     "name": "steam-api",
     "files": {
-        "lua/packages/steam-api/package.lua": "",
-        "lua/packages/steam-api/init.lua": ""
+        "lua/packages/steam-api/package.lua": "https://raw.githubusercontent.com/Pika-Software/sql-tables/master/lua/packages/sql-tables/package.lua",
+        "lua/packages/steam-api/init.lua": "https://raw.githubusercontent.com/Pika-Software/sql-tables/master/lua/packages/sql-tables/init.lua"
     }
 }
