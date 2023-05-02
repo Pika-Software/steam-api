@@ -16,7 +16,7 @@ function string.IsSteamID( str )
     return string.match( str, "^STEAM_%d+:%d+:%d+$" ) ~= nil
 end
 
-local apikey = CreateConVar( "steam_apikey", "", bit.bor( FCVAR_ARCHIVE, FCVAR_PROTECTED ), " - https://steamcommunity.com/dev/apikey" )
+local apikey = CreateConVar( "steam_apikey", "", bit.bor( FCVAR_ARCHIVE, FCVAR_PROTECTED ), "https://steamcommunity.com/dev/apikey" )
 
 module( "steam_api" )
 
