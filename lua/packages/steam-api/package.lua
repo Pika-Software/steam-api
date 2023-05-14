@@ -1,3 +1,3 @@
 name = "steam-api"
 main = "init.lua"
-version = 1
+version = 000200

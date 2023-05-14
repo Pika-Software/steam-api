@@ -186,6 +186,24 @@ end )
 
 -- GetUserGroupList( "STEAM_0:1:70096775" ):Then( PrintTable )
 
+GetGroupMembers = promise.Async( function( groupName )
+    local ok, result = http.Fetch( "https://steamcommunity.com/groups/" .. groupName .. "/memberslistxml/?xml=1" ):SafeAwait()
+    if not ok then return promise.Reject( result ) end
+    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
+    if not result or not result.body then return promise.Reject( "request failed, no result" ) end
+
+    local sids = {}
+    for sid64 in string.gmatch( result.body, "<steamID64>(%d+)</steamID64>" ) do
+        sids[ #sids + 1 ] = sid64
+    end
+
+    return sids
+end )
+
+-- GetGroupMembers( "thealium" ):Then( function( tbl )
+--     print( #tbl )
+-- end )
+
 GetSteamLevel = promise.Async( function( steamid )
     if string.IsSteamID( steamid ) then
         steamid = util.SteamIDTo64( steamid )
@@ -237,6 +255,71 @@ ResolveVanityURL = promise.Async( function( vanityurl, url_type )
 end )
 
 -- ResolveVanityURL( "https://steamcommunity.com/id/PrikolMen/" ):Then( print )
+
+HasVAC = promise.Async( function( steamid )
+    if string.IsSteamID( steamid ) then
+        steamid = util.SteamIDTo64( steamid )
+    end
+
+    local ok, result = http.Fetch( "https://steamcommunity.com/profiles/" .. steamid .. "/?xml=1" ):SafeAwait()
+    if not ok then return promise.Reject( result ) end
+    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
+    if not result or not result.body then return promise.Reject( "request failed, no result" ) end
+
+    return string.match( result.body, "<vacBanned>(%d)</vacBanned>" ) == "1"
+end )
+
+-- HasVAC( "STEAM_0:0:116629321" ):Then( function( has )
+--     print( "tr", has )
+-- end )
+
+-- HasVAC( "STEAM_0:1:70096775" ):Then( function( has )
+--     print( "pr", has )
+-- end )
+
+GetFriendList = promise.Async( function( steamid, relationship )
+    if string.IsSteamID( steamid ) then
+        steamid = util.SteamIDTo64( steamid )
+    end
+
+    local ok, result = http.HTTP( {
+        ["url"] = string.format( "%sISteamUser/GetFriendList/v0001/?key=%s&steamid=%s&relationship=%s&format=json", BaseURL, apikey:GetString(), steamid, relationship or "friend" ),
+        ["type"] = "application/json"
+    } ):SafeAwait()
+
+    if not ok then return promise.Reject( result ) end
+    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
+    if not result or not result.body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( result.body )
+    if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
+
+    return tbl.friendslist.friends
+end )
+
+-- GetFriendList( "STEAM_0:1:95980398" ):Then( PrintTable )
+
+GetAchievements = promise.Async( function( steamid, appid )
+    if string.IsSteamID( steamid ) then
+        steamid = util.SteamIDTo64( steamid )
+    end
+
+    local ok, result = http.HTTP( {
+        ["url"] = string.format( "%sISteamUserStats/GetPlayerAchievements/v0001/?key=%s&steamid=%s&appid=%s", BaseURL, apikey:GetString(), steamid, appid ),
+        ["type"] = "application/json"
+    } ):SafeAwait()
+
+    if not ok then return promise.Reject( result ) end
+    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
+    if not result or not result.body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( result.body )
+    if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
+
+    return tbl.playerstats
+end )
+
+-- GetAchievements( "76561198100459279", 4000 ):Then( PrintTable )
 
 GetOwnedGames = promise.Async( function( steamid, include_appinfo, include_played_free_games, appids_filter )
     if string.IsSteamID( steamid ) then
