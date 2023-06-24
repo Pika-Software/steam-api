@@ -101,9 +101,9 @@ GetPlayerSummaries = promise.Async( function( ... )
     local steamids = getStrings( {...} )
     if #steamids > 100 then return promise.Reject( "too many steamids" ) end
 
-    for index, sid in ipairs( steamids ) do
-        if not string.IsSteamID( sid ) then continue end
-        steamids[ index ] = util.SteamIDTo64( sid )
+    for index, steamid in ipairs( steamids ) do
+        if not string.IsSteamID( steamid ) then continue end
+        steamids[ index ] = util.SteamIDTo64( steamid )
     end
 
     local ok, result = http.HTTP( {
@@ -131,9 +131,9 @@ end )
 GetPlayerBans = promise.Async( function( ... )
     local steamids = getStrings( {...} )
 
-    for index, sid in ipairs( steamids ) do
-        if not string.IsSteamID( sid ) then continue end
-        steamids[ index ] = util.SteamIDTo64( sid )
+    for index, steamid in ipairs( steamids ) do
+        if not string.IsSteamID( steamid ) then continue end
+        steamids[ index ] = util.SteamIDTo64( steamid )
     end
 
     local ok, result = http.HTTP( {
