@@ -10,6 +10,8 @@ local math_Round = math.Round
 local tonumber = tonumber
 local tostring = tostring
 local ipairs = ipairs
+local select = select
+local HTTP = HTTP
 local type = type
 
 function string.IsSteamID( str )
@@ -65,9 +67,15 @@ GetPublishedFileDetails = promise.Async( function( ... )
     local ok, result = http.Post( BaseURL .. "ISteamRemoteStorage/GetPublishedFileDetails/v1/", getParameters( "itemcount", ... ) ):SafeAwait()
     if not ok then return promise.Reject( result ) end
 
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
 
-    local tbl = util.JSONToTable( result.body )
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     local response = tbl.response
@@ -83,9 +91,15 @@ GetCollectionDetails = promise.Async( function( ... )
     local ok, result = http.Post( BaseURL .. "ISteamRemoteStorage/GetCollectionDetails/v1/", getParameters( "collectioncount", ... ) ):SafeAwait()
     if not ok then return promise.Reject( result ) end
 
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
 
-    local tbl = util.JSONToTable( result.body )
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     local response = tbl.response
@@ -106,7 +120,7 @@ GetPlayerSummaries = promise.Async( function( ... )
         steamids[ index ] = util.SteamIDTo64( steamid )
     end
 
-    local ok, result = http.HTTP( {
+    local ok, result = HTTP( {
         ["url"] = BaseURL .. "ISteamUser/GetPlayerSummaries/v2/",
         ["parameters"] = {
             ["key"] = apikey:GetString(),
@@ -115,9 +129,16 @@ GetPlayerSummaries = promise.Async( function( ... )
     } ):SafeAwait()
 
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
 
-    local tbl = util.JSONToTable( result.body )
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     local response = tbl.response
@@ -136,7 +157,7 @@ GetPlayerBans = promise.Async( function( ... )
         steamids[ index ] = util.SteamIDTo64( steamid )
     end
 
-    local ok, result = http.HTTP( {
+    local ok, result = HTTP( {
         ["url"] = BaseURL .. "ISteamUser/GetPlayerBans/v1/",
         ["parameters"] = {
             ["key"] = apikey:GetString(),
@@ -145,9 +166,16 @@ GetPlayerBans = promise.Async( function( ... )
     } ):SafeAwait()
 
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
 
-    local tbl = util.JSONToTable( result.body )
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     local players = tbl.players
@@ -163,7 +191,7 @@ GetUserGroupList = promise.Async( function( steamid )
         steamid = util.SteamIDTo64( steamid )
     end
 
-    local ok, result = http.HTTP( {
+    local ok, result = HTTP( {
         ["url"] = BaseURL .. "ISteamUser/GetUserGroupList/v1/",
         ["parameters"] = {
             ["key"] = apikey:GetString(),
@@ -172,9 +200,16 @@ GetUserGroupList = promise.Async( function( steamid )
     } ):SafeAwait()
 
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
 
-    local tbl = util.JSONToTable( result.body )
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     local response = tbl.response
@@ -189,11 +224,17 @@ end )
 GetGroupMembers = promise.Async( function( groupName )
     local ok, result = http.Fetch( "https://steamcommunity.com/groups/" .. groupName .. "/memberslistxml/?xml=1" ):SafeAwait()
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
-    if not result or not result.body then return promise.Reject( "request failed, no result" ) end
+
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
 
     local sids = {}
-    for sid64 in string.gmatch( result.body, "<steamID64>(%d+)</steamID64>" ) do
+    for sid64 in string.gmatch( body, "<steamID64>(%d+)</steamID64>" ) do
         sids[ #sids + 1 ] = sid64
     end
 
@@ -209,7 +250,7 @@ GetSteamLevel = promise.Async( function( steamid )
         steamid = util.SteamIDTo64( steamid )
     end
 
-    local ok, result = http.HTTP( {
+    local ok, result = HTTP( {
         ["url"] = BaseURL .. "IPlayerService/GetSteamLevel/v1/",
         ["parameters"] = {
             ["key"] = apikey:GetString(),
@@ -218,9 +259,16 @@ GetSteamLevel = promise.Async( function( steamid )
     } ):SafeAwait()
 
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
 
-    local tbl = util.JSONToTable( result.body )
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     local response = tbl.response
@@ -232,7 +280,7 @@ end )
 -- GetSteamLevel( "STEAM_0:1:70096775" ):Then( print )
 
 ResolveVanityURL = promise.Async( function( vanityurl, url_type )
-    local ok, result = http.HTTP( {
+    local ok, result = HTTP( {
         ["url"] = BaseURL .. "ISteamUser/ResolveVanityURL/v1/",
         ["parameters"] = {
             ["vanityurl"] = string.gsub( string.gsub( vanityurl, "https?://steamcommunity%.com/%w+/", "" ), "[/\\]*", "" ),
@@ -242,9 +290,16 @@ ResolveVanityURL = promise.Async( function( vanityurl, url_type )
     } ):SafeAwait()
 
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
 
-    local tbl = util.JSONToTable( result.body )
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     local response = tbl.response
@@ -263,10 +318,16 @@ HasVAC = promise.Async( function( steamid )
 
     local ok, result = http.Fetch( "https://steamcommunity.com/profiles/" .. steamid .. "/?xml=1" ):SafeAwait()
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
-    if not result or not result.body then return promise.Reject( "request failed, no result" ) end
 
-    return string.match( result.body, "<vacBanned>(%d)</vacBanned>" ) == "1"
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    return string.match( body, "<vacBanned>(%d)</vacBanned>" ) == "1"
 end )
 
 -- HasVAC( "STEAM_0:0:116629321" ):Then( function( has )
@@ -282,16 +343,22 @@ GetFriendList = promise.Async( function( steamid, relationship )
         steamid = util.SteamIDTo64( steamid )
     end
 
-    local ok, result = http.HTTP( {
+    local ok, result = HTTP( {
         ["url"] = string.format( "%sISteamUser/GetFriendList/v0001/?key=%s&steamid=%s&relationship=%s&format=json", BaseURL, apikey:GetString(), steamid, relationship or "friend" ),
         ["type"] = "application/json"
     } ):SafeAwait()
 
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
-    if not result or not result.body then return promise.Reject( "request failed, no result" ) end
 
-    local tbl = util.JSONToTable( result.body )
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     return tbl.friendslist.friends
@@ -304,16 +371,22 @@ GetAchievements = promise.Async( function( steamid, appid )
         steamid = util.SteamIDTo64( steamid )
     end
 
-    local ok, result = http.HTTP( {
+    local ok, result = HTTP( {
         ["url"] = string.format( "%sISteamUserStats/GetPlayerAchievements/v0001/?key=%s&steamid=%s&appid=%s", BaseURL, apikey:GetString(), steamid, appid ),
         ["type"] = "application/json"
     } ):SafeAwait()
 
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
-    if not result or not result.body then return promise.Reject( "request failed, no result" ) end
 
-    local tbl = util.JSONToTable( result.body )
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     return tbl.playerstats
@@ -326,7 +399,7 @@ GetOwnedGames = promise.Async( function( steamid, include_appinfo, include_playe
         steamid = util.SteamIDTo64( steamid )
     end
 
-    local ok, result = http.HTTP( {
+    local ok, result = HTTP( {
         ["url"] = BaseURL .. "IPlayerService/GetOwnedGames/v1/",
         ["parameters"] = {
             ["include_played_free_games"] = include_played_free_games == true,
@@ -338,9 +411,16 @@ GetOwnedGames = promise.Async( function( steamid, include_appinfo, include_playe
     } ):SafeAwait()
 
     if not ok then return promise.Reject( result ) end
-    if result.code ~= 200 then return promise.Reject( "request failed, with code: " .. result.code ) end
 
-    local tbl = util.JSONToTable( result.body )
+    local code = result.code
+    if code ~= 200 then
+        return promise.Reject( select( -1, http.GetStatusDescription( code ) ) )
+    end
+
+    local body = result.body
+    if not body then return promise.Reject( "request failed, no result" ) end
+
+    local tbl = util.JSONToTable( body )
     if not tbl then return promise.Reject( "not JSON is returned, probably an error in API accessing" ) end
 
     local response = tbl.response

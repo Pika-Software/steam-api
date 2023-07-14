@@ -1,2 +1,2 @@
 name = "steam-api"
-version = 000200
+version = "1.0.0"
