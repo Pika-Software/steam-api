@@ -20,7 +20,7 @@ end
 
 local apikey = CreateConVar( "steam_apikey", "", bit.bor( FCVAR_ARCHIVE, FCVAR_PROTECTED ), "https://steamcommunity.com/dev/apikey" )
 
-module( "steam_api" )
+module( "steam" )
 
 -- BaseURL
 BaseURL = "https://api.steampowered.com/"
