@@ -18,7 +18,10 @@ function string.IsSteamID( str )
     return string.match( str, "^STEAM_%d+:%d+:%d+$" ) ~= nil
 end
 
-local apikey = CreateConVar( "steam_apikey", "", bit.bor( FCVAR_ARCHIVE, FCVAR_PROTECTED ), "https://steamcommunity.com/dev/apikey" )
+local key = CreateConVar( "steam_apikey", "", bit.bor( FCVAR_ARCHIVE, FCVAR_PROTECTED, FCVAR_DONTRECORD ), "https://steamcommunity.com/dev/apikey" ):GetString()
+cvars.AddChangeCallback( "steam_apikey", function( _, __, str )
+    key = str
+end )
 
 module( "steam" )
 
@@ -123,8 +126,8 @@ GetPlayerSummaries = promise.Async( function( ... )
     local ok, result = HTTP( {
         ["url"] = BaseURL .. "ISteamUser/GetPlayerSummaries/v2/",
         ["parameters"] = {
-            ["key"] = apikey:GetString(),
-            ["steamids"] = table_concat( steamids, ", " )
+            ["steamids"] = table_concat( steamids, ", " ),
+            ["key"] = key
         }
     } ):SafeAwait()
 
@@ -160,8 +163,8 @@ GetPlayerBans = promise.Async( function( ... )
     local ok, result = HTTP( {
         ["url"] = BaseURL .. "ISteamUser/GetPlayerBans/v1/",
         ["parameters"] = {
-            ["key"] = apikey:GetString(),
-            ["steamids"] = table_concat( steamids, ", " )
+            ["steamids"] = table_concat( steamids, ", " ),
+            ["key"] = key
         }
     } ):SafeAwait()
 
@@ -194,8 +197,8 @@ GetUserGroupList = promise.Async( function( steamid )
     local ok, result = HTTP( {
         ["url"] = BaseURL .. "ISteamUser/GetUserGroupList/v1/",
         ["parameters"] = {
-            ["key"] = apikey:GetString(),
-            ["steamid"] = steamid
+            ["steamid"] = steamid,
+            ["key"] = key
         }
     } ):SafeAwait()
 
@@ -253,8 +256,8 @@ GetSteamLevel = promise.Async( function( steamid )
     local ok, result = HTTP( {
         ["url"] = BaseURL .. "IPlayerService/GetSteamLevel/v1/",
         ["parameters"] = {
-            ["key"] = apikey:GetString(),
-            ["steamid"] = steamid
+            ["steamid"] = steamid,
+            ["key"] = key
         }
     } ):SafeAwait()
 
@@ -285,7 +288,7 @@ ResolveVanityURL = promise.Async( function( vanityurl, url_type )
         ["parameters"] = {
             ["vanityurl"] = string.gsub( string.gsub( vanityurl, "https?://steamcommunity%.com/%w+/", "" ), "[/\\]*", "" ),
             ["url_type"] = url_type or PROFILE,
-            ["key"] = apikey:GetString()
+            ["key"] = key
         }
     } ):SafeAwait()
 
@@ -344,7 +347,7 @@ GetFriendList = promise.Async( function( steamid, relationship )
     end
 
     local ok, result = HTTP( {
-        ["url"] = string.format( "%sISteamUser/GetFriendList/v0001/?key=%s&steamid=%s&relationship=%s&format=json", BaseURL, apikey:GetString(), steamid, relationship or "friend" ),
+        ["url"] = string.format( "%sISteamUser/GetFriendList/v0001/?key=%s&steamid=%s&relationship=%s&format=json", BaseURL, key, steamid, relationship or "friend" ),
         ["type"] = "application/json"
     } ):SafeAwait()
 
@@ -372,7 +375,7 @@ GetAchievements = promise.Async( function( steamid, appid )
     end
 
     local ok, result = HTTP( {
-        ["url"] = string.format( "%sISteamUserStats/GetPlayerAchievements/v0001/?key=%s&steamid=%s&appid=%s", BaseURL, apikey:GetString(), steamid, appid ),
+        ["url"] = string.format( "%sISteamUserStats/GetPlayerAchievements/v0001/?key=%s&steamid=%s&appid=%s", BaseURL, key, steamid, appid ),
         ["type"] = "application/json"
     } ):SafeAwait()
 
@@ -405,8 +408,8 @@ GetOwnedGames = promise.Async( function( steamid, include_appinfo, include_playe
             ["include_played_free_games"] = include_played_free_games == true,
             ["include_appinfo"] = include_appinfo == true,
             ["appids_filter"] = appids_filter,
-            ["key"] = apikey:GetString(),
-            ["steamid"] = steamid
+            ["steamid"] = steamid,
+            ["key"] = key
         }
     } ):SafeAwait()
 
